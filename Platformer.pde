@@ -8,6 +8,10 @@ final static float SIZE = 50.0;
 final static float GRAVITY = 0.6;
 final static float JUMP_SPEED = 14;
 
+final static float RIGHT_MARGIN = 400;
+final static float LEFT_MARGIN = 60;
+final static float VERTICAL_MARGIN = 40;
+
 //declare global variables
 Sprite p;
 PImage dirt, cobble, wood, leaves, diamond;
@@ -37,7 +41,7 @@ void setup() {
 //loops multiple times per second
 void draw() {
   background(255);
-  scroll;
+  scroll();
   p.display();
   p.update();
   
@@ -99,7 +103,7 @@ void scroll(){
    
    float bottom_boundary = view_y + height - VERTICAL_MARGIN;
    if(player.getBottom() > bottom_boundary){
-     view_y += player,getBottom() - bottom_boundary;
+     view_y += player.getBottom() - bottom_boundary;
    }
    
    float top_boundary = view_y + VERTICAL_MARGIN;
