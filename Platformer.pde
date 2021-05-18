@@ -1,16 +1,17 @@
-final static float MOVE_SPEED = 5;
+final static float RIGHT_MARGIN = 400;
+final static float LEFT_MARGIN = 60;
+final static float VERTICAL_MARGIN = 40;
+
 final static float SPRITE_SCALE = 50.0/128;
 final static float DIRT_SCALE = 50.0/360;
 final static float COBBLE_SCALE = 50.0/600;
 final static float WOOD_SCALE = 50.0/225;
 final static float LEAVES_SCALE = 50.0/391;
 final static float SIZE = 50.0;
-final static float GRAVITY = 0.6;
-final static float JUMP_SPEED = 14;
 
-final static float RIGHT_MARGIN = 400;
-final static float LEFT_MARGIN = 60;
-final static float VERTICAL_MARGIN = 40;
+final static float GRAVITY = 0.6;
+final static float MOVE_SPEED = 5;
+final static float JUMP_SPEED = 14;
 
 //declare global variables
 Sprite p;
@@ -18,7 +19,7 @@ PImage dirt, cobble, wood, leaves, diamond;
 ArrayList<Sprite> platforms;
 int change_x;
 
-float view_x =0;
+float view_x = 0;
 float view_y = 0;
 
 void setup() {
@@ -43,7 +44,7 @@ void draw() {
   background(255);
   scroll();
   p.display();
-  p.update();
+  resolvePlatformCollisions(p, platforms);
   
   for(Sprite s: platforms)
     s.display();
@@ -92,23 +93,23 @@ void createPlatforms(String filename) {
 
 void scroll(){
    float right_boundary = view_x + width - RIGHT_MARGIN;
-   if(player.getRight() > right_boundary){
-     view_x += player.getRight() - right_boundary;
+   if(p.getRight() > right_boundary){
+     view_x += p.getRight() - right_boundary;
    }
    
    float left_boundary = view_x + LEFT_MARGIN;
-   if(player.getLeft() < left_boundary){
-     view_x -= left_boundary - player.getLeft();
+   if(p.getLeft() < left_boundary){
+     view_x -= left_boundary - p.getLeft();
    }
    
    float bottom_boundary = view_y + height - VERTICAL_MARGIN;
-   if(player.getBottom() > bottom_boundary){
-     view_y += player.getBottom() - bottom_boundary;
+   if(p.getBottom() > bottom_boundary){
+     view_y += p.getBottom() - bottom_boundary;
    }
    
    float top_boundary = view_y + VERTICAL_MARGIN;
-   if(player.getTop() < top_boundary){
-     view_y -= top_boundary - player.getTop();
+   if(p.getTop() < top_boundary){
+     view_y -= top_boundary - p.getTop();
    }
    
    translate(-view_x, -view_y);
@@ -121,14 +122,11 @@ void keyPressed() {
   else if (keyCode == LEFT) {
     p.change_x = -MOVE_SPEED;
   }
-  else if (keyCode == UP) {
-    p.change_y = -MOVE_SPEED;
-  }
   else if (keyCode == DOWN) {
     p.change_y = MOVE_SPEED;
   }
-  else if(key == 'a' && isOnPlatforms(player, platforms)){
-      player.change_y = -JUMP_SPEED;
+  else if (keyCode == UP && isOnPlatforms(p, platforms)){
+      p.change_y = -JUMP_SPEED;
     }
   
 }
@@ -180,9 +178,10 @@ public boolean isOnPlatforms(Sprite s, ArrayList<Sprite> walls){
     return false;
 }
 
-public void resolvePlatformCollisions(Spite s, ArrayList<Sprite> walls){
+public void resolvePlatformCollisions(Sprite s, ArrayList<Sprite> walls){
   //add gravity to change_y
-  s.change_y +=GRAVITY;
+  s.change_y += GRAVITY;
+  s.center_y += s.change_y;
   s.center_x += s.change_x;
   
   //move in the y-directioon then resolve collision
@@ -214,5 +213,3 @@ public void resolvePlatformCollisions(Spite s, ArrayList<Sprite> walls){
     }
   }
 }
-
-
