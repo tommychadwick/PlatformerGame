@@ -211,5 +211,6 @@ public void resolvePlatformCollisions(Sprite s, ArrayList<Sprite> walls){
     else if(s.change_x < 0){
      s.setLeft(collided.getRight()); 
     }
+    s.change_x = 0;
   }
 }
