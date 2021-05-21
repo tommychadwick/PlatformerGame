@@ -1,3 +1,12 @@
+// CSV Numbers:
+// 1 = Dirt
+// 2 = Cobblestone
+// 3 = Wood
+// 4 = Leaves
+// 6 = Spider
+// 10 = Invisible Block
+// 9 = Diamond
+
 final static float RIGHT_MARGIN = 400;
 final static float LEFT_MARGIN = 60;
 final static float VERTICAL_MARGIN = 40;
@@ -17,13 +26,17 @@ final static int NEUTRAL_FACING = 0;
 final static int RIGHT_FACING = 1; 
 final static int LEFT_FACING = 2; 
 
+final static int maxLevels = 2;
+
 final static float WIDTH = SIZE * 16;
 final static float HEIGHT = SIZE * 17;
 final static float GROUND_LEVEL = HEIGHT - SIZE;
 
+
+
 //declare global variables
 Player p;
-PImage dirt, cobble, wood, leaves, diamond, coin, enemyImg, pImg;
+PImage dirt, cobble, wood, leaves, blank, coin, enemyImg, pImg;
 ArrayList<Sprite> platforms;
 ArrayList<Sprite> coins;
 ArrayList<Enemy> enemys;
@@ -39,7 +52,7 @@ float view_y = 0;
 
 void setup() {
   
-  size(1600, 800);
+  size(1600, 800, P2D);
   imageMode(CENTER);
   //p = new Sprite("idleR1.png", 0.2, 100, 300);
   isGameOver = false;
@@ -51,7 +64,7 @@ void setup() {
   cobble = loadImage("cobble.png");
   wood = loadImage("wood.png");
   leaves = loadImage("leaves.png");
-  diamond = loadImage("diamond.png");
+  blank = loadImage("blank.png");
   coin = loadImage("gold1.png");
   enemyImg = loadImage("spider_walk_right1.png");
   pImg = loadImage("idleR1.png");
@@ -68,6 +81,10 @@ void setup() {
   enemys = new ArrayList<Enemy>();
 
   createPlatforms("map" + level +".csv");
+  
+  //textFont(createFont("mono",36,true),36);
+  //String[] fontList = PFont.list();
+  //printArray(fontList);
 }
 
 //loops multiple times per second
@@ -92,19 +109,29 @@ void displayAll() {
   p.display();
 
   fill(0, 0, 255);
+  textAlign(LEFT);
   textSize(32);
   text("COINS:" + numCoins, view_x+10, view_y+40);
   text("LIFE:" + p.lives, view_x+1600-100, view_y+40);
   //text("LEVEL:" + level, view_x+1600-700, view_y+40);
 
   if (isGameOver) {
+    textAlign(CENTER);
+    fill(0, 0, 255, 100);
+    noStroke();
+    rect(view_x+width/2-310,view_y+height/2-50,620,175); 
+    
     fill(255, 0, 0);
     text("GAME OVER", view_x +width/2, view_y + height/2);
-    if (p.lives == 0) 
+    if (p.lives == 0) {
       text("Lose :(", view_x +width/2, view_y + height/2 + 50);
-    else
+      text("SPACEBAR to RESTART", view_x +width/2, view_y + height/2+100);
+    }
+    else{
       text("YOU ARE WINNER", view_x +width/2, view_y + height/2+50);
-    text("SPACEBAR to RESTART", view_x +width/2, view_y + height/2+100);
+      text("Press SPACEBAR to continue to Level " + level, view_x +width/2, view_y + height/2+100);
+    }
+
   }
 }
 void updateAll() {
@@ -151,11 +178,7 @@ void createPlatforms(String filename) {
         s.center_x = SIZE/2 + col * SIZE;
         s.center_y = SIZE/2 + row * SIZE;
         platforms.add(s);
-      } else if (values[col].equals("5")) { // Dirt
-        Sprite s = new Sprite(diamond, DIRT_SCALE);
-        s.center_x = SIZE/2 + col * SIZE;
-        s.center_y = SIZE/2 + row * SIZE;
-        platforms.add(s);
+        
       } else if (values[col].equals("6")) { // Giant Enemy Spider
         float bLeft = col*SIZE;
         float bRight = bLeft+4*SIZE;
@@ -168,6 +191,11 @@ void createPlatforms(String filename) {
         c.center_x = SIZE/2 + col * SIZE;
         c.center_y = SIZE/2 + row * SIZE;
         coins.add(c);
+      } if (values[col].equals("10")) { // Blank
+        Sprite s = new Sprite(blank, SPRITE_SCALE);
+        s.center_x = SIZE/2 + col * SIZE;
+        s.center_y = SIZE/2 + row * SIZE;
+        platforms.add(s);
       }
     }
   }
@@ -294,9 +322,10 @@ void collectCoins() {
       coins.remove(coin);
     }
   }
-  if (coins.size()==0) {
+  if (coins.size()==0) { //Good ending.
     isGameOver = true;
-    level++;
+    if(level>=maxLevels)level=1;
+    else level++;
   }
 }
 void checkDeath() {
