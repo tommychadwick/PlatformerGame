@@ -3,10 +3,10 @@ final static float LEFT_MARGIN = 60;
 final static float VERTICAL_MARGIN = 40;
 
 final static float SPRITE_SCALE = 50.0/128;
-final static float DIRT_SCALE = 50.0/360;
-final static float COBBLE_SCALE = 50.0/600;
-final static float WOOD_SCALE = 50.0/225;
-final static float LEAVES_SCALE = 50.0/391;
+final static float DIRT_SCALE = 50.0/128;
+final static float COBBLE_SCALE = 50.0/128;
+final static float WOOD_SCALE = 50.0/128;
+final static float LEAVES_SCALE = 50.0/128;
 final static float SIZE = 50.0;
 
 final static float GRAVITY = 0.6;
@@ -29,12 +29,16 @@ ArrayList<Sprite> coins;
 ArrayList<Enemy> enemys;
 int change_x;
 int numCoins;
+
+int level = 1;
+
 boolean isGameOver;
 
 float view_x =0;
 float view_y = 0;
 
 void setup() {
+  
   size(1600, 800);
   imageMode(CENTER);
   //p = new Sprite("idleR1.png", 0.2, 100, 300);
@@ -52,18 +56,18 @@ void setup() {
   enemyImg = loadImage("spider_walk_right1.png");
   pImg = loadImage("idleR1.png");
 
-  p = new Player(pImg, 0.2);
+  p = new Player(pImg, 0.4);
   p.setBottom(GROUND_LEVEL-100);
   p.center_x = 100;
 
-  float view_x =0;
-  float view_y = 0;
+  view_x =0;
+  view_y = 0;
 
   platforms = new ArrayList<Sprite>();
   coins = new ArrayList<Sprite>();
   enemys = new ArrayList<Enemy>();
 
-  createPlatforms("map2.csv");
+  createPlatforms("map" + level +".csv");
 }
 
 //loops multiple times per second
@@ -89,8 +93,9 @@ void displayAll() {
 
   fill(0, 0, 255);
   textSize(32);
-  text("COINS:" + numCoins, view_x+50, view_y+50);
-  text("LIFE:" + p.lives, view_x+50, view_y+100);
+  text("COINS:" + numCoins, view_x+10, view_y+40);
+  text("LIFE:" + p.lives, view_x+1600-100, view_y+40);
+  //text("LEVEL:" + level, view_x+1600-700, view_y+40);
 
   if (isGameOver) {
     fill(255, 0, 0);
@@ -240,7 +245,7 @@ void keyPressed() {
   } else if (keyCode == LEFT) {
     p.change_x = -MOVE_SPEED;
   } else if (keyCode == DOWN) {
-    p.change_y = MOVE_SPEED;
+    //p.change_y = MOVE_SPEED;
   } else if (keyCode == UP && isOnPlatforms(p, platforms)) {
     p.change_y = -JUMP_SPEED;
   } else if (isGameOver && key == ' ') setup();
@@ -254,7 +259,7 @@ void keyReleased() { // Get rid of ELSEs?
     p.change_x = 0;
   }
   if (keyCode == UP) {
-    p.change_y = 0;
+    if(p.change_y < 0) p.change_y=0;
   }
   if (keyCode == DOWN) {
     p.change_y = 0;
@@ -291,6 +296,7 @@ void collectCoins() {
   }
   if (coins.size()==0) {
     isGameOver = true;
+    level++;
   }
 }
 void checkDeath() {
@@ -308,6 +314,7 @@ void checkDeath() {
     } else {
       p.center_x = 100;
       p.setBottom(GROUND_LEVEL - 100);
+      view_y = 0;
     }
   }
 }
