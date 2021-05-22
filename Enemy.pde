@@ -14,7 +14,8 @@ public class Enemy extends AnimatedSprite {
     direction = RIGHT_FACING;
     boundaryLeft=bLeft;
     boundaryRight=bRight;
-    change_x =2;
+    change_x =2 + 0.5*completedLevels;
+    //change_x = 2+(5*completedLevels); //<>//
   }
   void update() {
     super.update();

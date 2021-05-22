@@ -3,9 +3,11 @@
 // 2 = Cobblestone
 // 3 = Wood
 // 4 = Leaves
-// 6 = Spider
+// 6 = Spider OR
+// e# = Spider. Replace # with the distance you want it to move.
 // 10 = Invisible Block
 // 9 = Diamond
+// s = Player Start Location
 
 final static float RIGHT_MARGIN = 400;
 final static float LEFT_MARGIN = 60;
@@ -27,6 +29,7 @@ final static int RIGHT_FACING = 1;
 final static int LEFT_FACING = 2; 
 
 final static int maxLevels = 3;
+//final static int maxLevels = 2; //TESTING
 
 final static float WIDTH = SIZE * 16;
 final static float HEIGHT = SIZE * 17;
@@ -43,22 +46,23 @@ ArrayList<Enemy> enemys;
 int change_x;
 int numCoins;
 
-int level = 1;
+int currentLevel = 1;
+int completedLevels = 0;
 
 boolean isGameOver;
 
 float view_x =0;
 float view_y = 0;
 
+float[] startLocation = new float[2];
+
 void setup() {
-  
+
   size(1600, 800, P2D);
   imageMode(CENTER);
-  //p = new Sprite("idleR1.png", 0.2, 100, 300);
+
   isGameOver = false;
   numCoins = 0;
-  //p.change_x = 0;
-  //p.change_y = 0;
 
   dirt = loadImage("dirt.jpg");
   cobble = loadImage("cobble.png");
@@ -70,21 +74,17 @@ void setup() {
   pImg = loadImage("idleR1.png");
 
   p = new Player(pImg, 0.4);
-  p.setBottom(GROUND_LEVEL-100);
+  p.setBottom(GROUND_LEVEL-100); // Default Location
   p.center_x = 100;
 
-  view_x =0;
+  view_x = 0;
   view_y = 0;
 
   platforms = new ArrayList<Sprite>();
   coins = new ArrayList<Sprite>();
   enemys = new ArrayList<Enemy>();
-
-  createPlatforms("map" + level +".csv");
-  
-  //textFont(createFont("mono",36,true),36);
-  //String[] fontList = PFont.list();
-  //printArray(fontList);
+  createPlatforms("map" + currentLevel +".csv");
+  //createPlatforms("test" + currentLevel +".csv");
 }
 
 //loops multiple times per second
@@ -113,34 +113,39 @@ void displayAll() {
   textSize(32);
   text("COINS:" + numCoins, view_x+10, view_y+40);
   text("LIFE:" + p.lives, view_x+1600-100, view_y+40);
-  //text("LEVEL:" + level, view_x+1600-700, view_y+40);
+  text("LEVEL:" + completedLevels, view_x+1600-700, view_y+40);
 
   if (isGameOver) {
     textAlign(CENTER);
     fill(0, 0, 255, 100);
     noStroke();
-    rect(view_x+width/2-310,view_y+height/2-50,620,175); 
-    
-    fill(255, 0, 0);
-    text("GAME OVER", view_x +width/2, view_y + height/2);
-    if (p.lives == 0) {
-      text("Lose :(", view_x +width/2, view_y + height/2 + 50);
-      text("SPACEBAR to RESTART", view_x +width/2, view_y + height/2+100);
-    }
-    else{
-      text("YOU ARE WINNER", view_x +width/2, view_y + height/2+50);
-      text("Press SPACEBAR to continue to Level " + level, view_x +width/2, view_y + height/2+100);
-    }
+    rect(view_x+width/2-310, view_y+height/2-100, 620, 175); 
 
+
+    //text("GAME OVER", view_x +width/2, view_y + height/2);
+    if (p.lives == 0) {
+      fill(255, 0, 0);
+      text("GAME OVER", view_x +width/2, view_y + height/2 - 50);
+      text("You completed "+completedLevels+" level(s)!", view_x +width/2, view_y + height/2);
+      text("SPACEBAR to RESTART", view_x +width/2, view_y + height/2+50);
+    } else {
+      fill(0, 0, 255);
+      text("YOU ARE WINNER", view_x +width/2, view_y + height/2-50);
+      text("Press SPACEBAR to continue to Level " + currentLevel, view_x +width/2, view_y + height/2+50);
+      if (currentLevel==1) {
+        fill(255, 0, 0);
+        text("WARNING! Enemy speed increased!", view_x +width/2, view_y + height/2);
+      }
+    }
   }
 }
 void updateAll() {
   p.updateAnimation();
   resolvePlatformCollisions(p, platforms);
-    for (Sprite c : coins) {
+  for (Sprite c : coins) {
     ((AnimatedSprite)c).updateAnimation();
   }
-  
+
   for (Enemy e : enemys) {
     e.update();
     e.updateAnimation();
@@ -178,10 +183,13 @@ void createPlatforms(String filename) {
         s.center_x = SIZE/2 + col * SIZE;
         s.center_y = SIZE/2 + row * SIZE;
         platforms.add(s);
-        
-      } else if (values[col].equals("6")) { // Giant Enemy Spider
+      } else if (values[col].equals("6")||values[col].length()>1 && values[col].substring(0, 1).equals("e")) { // Giant Enemy Spider
         float bLeft = col*SIZE;
         float bRight = bLeft+4*SIZE;
+        if (!values[col].substring(1).equals("")) { // Redundacy.
+          bLeft = col*SIZE;
+          bRight = bLeft+float(values[col].substring(1))*SIZE;
+        }
         Enemy e = new Enemy(enemyImg, 50/72.0, bLeft, bRight);
         e.center_x = SIZE/2 + col * SIZE;
         e.center_y = SIZE/2 + row * SIZE;
@@ -191,11 +199,17 @@ void createPlatforms(String filename) {
         c.center_x = SIZE/2 + col * SIZE;
         c.center_y = SIZE/2 + row * SIZE;
         coins.add(c);
-      } if (values[col].equals("10")) { // Blank
+      } else if (values[col].equals("10")) { // Blank
         Sprite s = new Sprite(blank, SPRITE_SCALE);
         s.center_x = SIZE/2 + col * SIZE;
         s.center_y = SIZE/2 + row * SIZE;
         platforms.add(s);
+      } else if (values[col].equals("s")) { // Start Location
+        startLocation[1] = SIZE/2 + col * SIZE; // X
+        startLocation[0] = SIZE/2 + row * SIZE; // Y
+
+        p.setBottom(startLocation[0]);
+        p.center_x = startLocation[1];
       }
     }
   }
@@ -276,7 +290,13 @@ void keyPressed() {
     //p.change_y = MOVE_SPEED;
   } else if (keyCode == UP && isOnPlatforms(p, platforms)) {
     p.change_y = -JUMP_SPEED;
-  } else if (isGameOver && key == ' ') setup();
+  } else if (isGameOver && key == ' ') { 
+    if (p.lives==0) { //TRUE RESET
+      completedLevels = 0;
+      currentLevel = 1;
+    }
+    setup();
+  }
 }
 
 void keyReleased() { // Get rid of ELSEs?
@@ -287,7 +307,7 @@ void keyReleased() { // Get rid of ELSEs?
     p.change_x = 0;
   }
   if (keyCode == UP) {
-    if(p.change_y < 0) p.change_y=0;
+    if (p.change_y < 0) p.change_y=0;
   }
   if (keyCode == DOWN) {
     p.change_y = 0;
@@ -324,8 +344,13 @@ void collectCoins() {
   }
   if (coins.size()==0) { //Good ending.
     isGameOver = true;
-    if(level>=maxLevels)level=1;
-    else level++;
+    if (currentLevel>=maxLevels) {
+      currentLevel=1;
+      completedLevels++;
+    } else { 
+      currentLevel++;
+      completedLevels++;
+    }
   }
 }
 void checkDeath() {
@@ -340,9 +365,9 @@ void checkDeath() {
     p.lives--;
     if (p.lives == 0) {
       isGameOver = true;
-    } else {
-      p.center_x = 100;
-      p.setBottom(GROUND_LEVEL - 100);
+    } else {  // "Soft Reset," When player loses a life.
+      p.setBottom(startLocation[0]);
+      p.center_x = startLocation[1];
       view_y = 0;
     }
   }
