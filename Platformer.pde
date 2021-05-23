@@ -113,7 +113,7 @@ void displayAll() {
   textSize(32);
   text("COINS:" + numCoins, view_x+10, view_y+40);
   text("LIFE:" + p.lives, view_x+1600-100, view_y+40);
-  text("LEVEL:" + completedLevels, view_x+1600-700, view_y+40);
+  //text("LEVEL:" + completedLevels, view_x+1600-700, view_y+40);
 
   if (isGameOver) {
     textAlign(CENTER);
